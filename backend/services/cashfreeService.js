@@ -30,7 +30,7 @@ const createPaymentLink = async ({ customer_id, phone, amount, plan_id, plan_nam
       send_email: false
     },
     link_meta: {
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-success?status=success&order_id=${linkId}`,
+      return_url: `${process.env.FRONTEND_URL || 'https://telegram-bot-virid-one.vercel.app'}/payment-success?status=success&order_id=${linkId}`,
       notify_url: `${process.env.BACKEND_URL || 'https://telegram-bot-1-f9v5.onrender.com'}/api/payment/webhook`,
       plan_id: plan_id || '',
       customer_id: customer_id,
