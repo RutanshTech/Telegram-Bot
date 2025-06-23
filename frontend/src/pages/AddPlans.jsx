@@ -21,6 +21,7 @@ import {
   getplansasync,
   updateplanasync,
 } from "../services/action/plan.Action";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const AddPlanForm = () => {
   const dispatch = useDispatch();
@@ -36,7 +37,7 @@ const AddPlanForm = () => {
   const [editId, setEditId] = useState(null);
   const [searchOrderId, setSearchOrderId] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [orderedPlans, setOrderedPlans] = useState([]);
 
   const isValidMrp = Number(formData.mrp) > 0;
 
@@ -125,9 +126,28 @@ const AddPlanForm = () => {
       )
     : plans;
 
-  const sortedPlans = [...(filteredPlans || [])].sort((a, b) =>
-    sortOrder === "asc" ? a.mrp - b.mrp : b.mrp - a.mrp
-  );
+  useEffect(() => {
+    setOrderedPlans(
+      [...(filteredPlans || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    );
+  }, [filteredPlans]);
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const items = Array.from(orderedPlans);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setOrderedPlans(items);
+
+    // Send new order to backend
+    try {
+      await axios.post("https://telegram-bot-1-f9v5.onrender.com/api/plans/reorder", {
+        orderedIds: items.map(plan => plan._id)
+      });
+    } catch (error) {
+      toast.error("Failed to save new order!");
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 pb-0">
@@ -238,17 +258,6 @@ const AddPlanForm = () => {
             className="pl-10 w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button
-          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-          className="bg-gray-200 dark:bg-gray-700 text-sm px-4 py-2 rounded-xl text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center gap-2"
-        >
-          {sortOrder === "asc" ? (
-            <ArrowUpWideNarrow className="w-4 h-4" />
-          ) : (
-            <ArrowDownWideNarrow className="w-4 h-4" />
-          )}
-          Sort by MRP ({sortOrder === "asc" ? "Low → High" : "High → Low"})
-        </button>
       </div>
 
       <div className="max-w-full max-h-[300px] custom-scrollbar overflow-x-auto overflow-y-auto rounded-xl shadow-md border dark:border-gray-700">
@@ -256,55 +265,74 @@ const AddPlanForm = () => {
           <div className="p-6 text-center text-gray-500 dark:text-gray-300">
             Loading plans...
           </div>
-        ) : sortedPlans.length > 0 ? (
-          <table className="min-w-[800px] w-full bg-white dark:bg-gray-800 dark:text-white text-sm text-left">
-            <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10 text-gray-700 dark:text-gray-300 text-center">
-              <tr>
-                <th className="p-4">Order ID</th>
-                <th className="p-4">MRP</th>
-                <th className="p-4">Type</th>
-                <th className="p-4">Duration</th>
-                <th className="p-4">Highlight</th>
-                <th className="p-4">Action</th>
-              </tr>
-            </thead>
-            <tbody className="text-center">
-              {sortedPlans.map((plan) => (
-                <tr
-                  key={plan._id}
-                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900"
+        ) : orderedPlans.length > 0 ? (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="plans">
+              {(provided) => (
+                <table
+                  className="min-w-[800px] w-full bg-white dark:bg-gray-800 dark:text-white text-sm text-left"
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
                 >
-                  <td className="p-4 break-all">{plan._id || "N/A"}</td>
-                  <td className="p-4">{plan.mrp}</td>
-                  <td className="p-4">{plan.type}</td>
-                  <td className="p-4 capitalize">{plan.duration}</td>
-                  <td className="p-4">
-                    {plan.highlight ? (
-                      <span className="text-green-600 font-medium">Yes</span>
-                    ) : (
-                      <span className="text-gray-400">No</span>
-                    )}
-                  </td>
-                  <td className="p-4 flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => handleEdit(plan._id)}
-                      className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs transition"
-                      title="Edit Plan"
-                    >
-                      <Pencil className="w-4 h-4" /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(plan._id)}
-                      className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs transition"
-                      title="Delete Plan"
-                    >
-                      <Trash2 className="w-4 h-4" /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10 text-gray-700 dark:text-gray-300 text-center">
+                    <tr>
+                      <th className="p-4">Order ID</th>
+                      <th className="p-4">MRP</th>
+                      <th className="p-4">Type</th>
+                      <th className="p-4">Duration</th>
+                      <th className="p-4">Highlight</th>
+                      <th className="p-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-center">
+                    {orderedPlans.map((plan, index) => (
+                      <Draggable key={plan._id} draggableId={plan._id} index={index}>
+                        {(provided, snapshot) => (
+                          <tr
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 ${
+                              snapshot.isDragging ? "bg-blue-100 dark:bg-blue-900" : ""
+                            }`}
+                          >
+                            <td className="p-4 break-all">{plan._id || "N/A"}</td>
+                            <td className="p-4">{plan.mrp}</td>
+                            <td className="p-4">{plan.type}</td>
+                            <td className="p-4 capitalize">{plan.duration}</td>
+                            <td className="p-4">
+                              {plan.highlight ? (
+                                <span className="text-green-600 font-medium">Yes</span>
+                              ) : (
+                                <span className="text-gray-400">No</span>
+                              )}
+                            </td>
+                            <td className="p-4 flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEdit(plan._id)}
+                                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs transition"
+                                title="Edit Plan"
+                              >
+                                <Pencil className="w-4 h-4" /> Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(plan._id)}
+                                className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs transition"
+                                title="Delete Plan"
+                              >
+                                <Trash2 className="w-4 h-4" /> Delete
+                              </button>
+                            </td>
+                          </tr>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </tbody>
+                </table>
+              )}
+            </Droppable>
+          </DragDropContext>
         ) : (
           <div className="p-6 text-center text-gray-500 dark:text-gray-300">
             No matching plans found.

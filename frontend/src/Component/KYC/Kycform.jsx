@@ -7,14 +7,43 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
-  "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
-  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
-  "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli",
-  "Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep",
-  "Puducherry"
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli",
+  "Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
 ];
 
 export default function KYCForm() {
@@ -50,7 +79,7 @@ export default function KYCForm() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
     } else if (formData.firstName.length < 2) {
@@ -85,7 +114,8 @@ export default function KYCForm() {
     if (!formData.panNumber) {
       newErrors.panNumber = "PAN number is required";
     } else if (!panRegex.test(formData.panNumber.toUpperCase())) {
-      newErrors.panNumber = "Please enter a valid PAN number (e.g., ABCDE1234F)";
+      newErrors.panNumber =
+        "Please enter a valid PAN number (e.g., ABCDE1234F)";
     }
 
     if (!formData.dob) {
@@ -118,9 +148,9 @@ export default function KYCForm() {
       [name]: value,
     }));
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
@@ -152,24 +182,29 @@ export default function KYCForm() {
         userid: userId,
         invoiceNo: `INV-${Date.now()}`,
         billDate: new Date().toISOString(),
-        description: "Telegram Subscription Plan"
+        description: "Telegram Subscription Plan",
       };
 
       console.log("Invoice Data being sent:", invoiceData);
 
-      const response = await axios.post("https://telegram-bot-1-f9v5.onrender.com/api/invoices", invoiceData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+      const response = await axios.post(
+        "https://telegram-bot-1-f9v5.onrender.com/api/invoices",
+        invoiceData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
         }
-      });
+      );
 
       if (response.data) {
         toast.success("Invoice has been sent to your email!");
-        // Download invoice if ID is present
         const invoiceId = response.data?.data?._id;
         if (invoiceId) {
-          window.open(`https://telegram-bot-1-f9v5.onrender.com/api/invoices/downloadInvoice/${invoiceId}`, '_blank');
+          window.open(
+            `https://telegram-bot-1-f9v5.onrender.com/api/invoices/downloadInvoice/${invoiceId}, '_blank'`
+          );
         } else {
           toast.error("Invoice ID not found, cannot download invoice.");
         }
@@ -182,23 +217,25 @@ export default function KYCForm() {
       } else if (error.request) {
         toast.error("No response from server. Please check your connection.");
       } else {
-        toast.error(error.message || "Failed to process your request. Please try again.");
+        toast.error(
+          error.message || "Failed to process your request. Please try again."
+        );
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredStates = INDIAN_STATES.filter(state =>
+  const filteredStates = INDIAN_STATES.filter((state) =>
     state.toLowerCase().includes(stateSearch.toLowerCase())
   );
 
   const handleStateSelect = (state) => {
-    setFormData(prev => ({ ...prev, state }));
+    setFormData((prev) => ({ ...prev, state }));
     setStateSearch("");
     setIsStateDropdownOpen(false);
     if (errors.state) {
-      setErrors(prev => ({ ...prev, state: "" }));
+      setErrors((prev) => ({ ...prev, state: "" }));
     }
   };
 
@@ -230,11 +267,15 @@ export default function KYCForm() {
                 value={formData.firstName}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.firstName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.firstName
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.firstName && (
-                <span className="text-red-500 text-xs mt-1">{errors.firstName}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.firstName}
+                </span>
               )}
             </div>
             <div className="flex flex-col group">
@@ -248,11 +289,15 @@ export default function KYCForm() {
                 value={formData.middleName}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.middleName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.middleName
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.middleName && (
-                <span className="text-red-500 text-xs mt-1">{errors.middleName}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.middleName}
+                </span>
               )}
             </div>
             <div className="flex flex-col group">
@@ -266,11 +311,15 @@ export default function KYCForm() {
                 value={formData.lastName}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.lastName ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.lastName
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.lastName && (
-                <span className="text-red-500 text-xs mt-1">{errors.lastName}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.lastName}
+                </span>
               )}
             </div>
           </div>
@@ -287,11 +336,15 @@ export default function KYCForm() {
                 value={formData.email}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.email ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.email
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.email && (
-                <span className="text-red-500 text-xs mt-1">{errors.email}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.email}
+                </span>
               )}
             </div>
             <div className="flex flex-col group">
@@ -304,7 +357,9 @@ export default function KYCForm() {
                 value={formData.dob}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.dob ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.dob
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.dob && (
@@ -325,7 +380,9 @@ export default function KYCForm() {
                 value={formData.city}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.city ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.city
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.city && (
@@ -340,10 +397,18 @@ export default function KYCForm() {
                 <div
                   onClick={() => setIsStateDropdownOpen(!isStateDropdownOpen)}
                   className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                    errors.state ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                    errors.state
+                      ? "border-red-500"
+                      : "border-gray-200 dark:border-gray-600"
                   } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20 cursor-pointer flex items-center justify-between`}
                 >
-                  <span className={formData.state ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}>
+                  <span
+                    className={
+                      formData.state
+                        ? "text-gray-900 dark:text-white"
+                        : "text-gray-400 dark:text-gray-500"
+                    }
+                  >
                     {formData.state || "Select State"}
                   </span>
                   <svg
@@ -354,10 +419,15 @@ export default function KYCForm() {
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
-                
+
                 {isStateDropdownOpen && (
                   <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-[200px] sm:max-h-[300px] overflow-hidden">
                     <div className="p-2 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
@@ -391,7 +461,9 @@ export default function KYCForm() {
                 )}
               </div>
               {errors.state && (
-                <span className="text-red-500 text-xs mt-1">{errors.state}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.state}
+                </span>
               )}
             </div>
           </div>
@@ -408,11 +480,15 @@ export default function KYCForm() {
                 value={formData.phone}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.phone ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.phone
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.phone && (
-                <span className="text-red-500 text-xs mt-1">{errors.phone}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.phone}
+                </span>
               )}
             </div>
             <div className="flex flex-col group">
@@ -426,11 +502,15 @@ export default function KYCForm() {
                 value={formData.panNumber}
                 onChange={handleChange}
                 className={`w-full p-2 sm:p-2.5 rounded-xl border-2 ${
-                  errors.panNumber ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  errors.panNumber
+                    ? "border-red-500"
+                    : "border-gray-200 dark:border-gray-600"
                 } dark:bg-gray-700/50 dark:text-white focus:border-transparent transition-all duration-300 text-sm placeholder-gray-400 dark:placeholder-gray-500 hover:border-blue-300 dark:hover:border-blue-500 outline-none shadow-sm hover:shadow-md focus:shadow-lg focus:ring-2 focus:ring-blue-500/20`}
               />
               {errors.panNumber && (
-                <span className="text-red-500 text-xs mt-1">{errors.panNumber}</span>
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.panNumber}
+                </span>
               )}
             </div>
           </div>
@@ -439,19 +519,35 @@ export default function KYCForm() {
             type="submit"
             disabled={isSubmitting}
             className={`w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 ease-in-out transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm shadow-lg hover:shadow-xl hover:shadow-blue-500/20 ${
-              isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+              isSubmitting ? "opacity-75 cursor-not-allowed" : ""
             }`}
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Submitting...
               </span>
             ) : (
-              'Submit KYC'
+              "Submit KYC"
             )}
           </button>
         </form>

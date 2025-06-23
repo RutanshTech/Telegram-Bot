@@ -49,6 +49,9 @@ const ViewPlans = () => {
         }
         return 0;
       });
+    } else {
+      
+      sortableItems.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
     return sortableItems;
   }, [plans, sortConfig, searchTerm]);

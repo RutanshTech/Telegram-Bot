@@ -21,9 +21,10 @@ const Card = () => {
 
   const sortedPlans = useMemo(() => {
     if (!plans || plans.length === 0) return [];
-    
     const plansCopy = [...plans];
-    
+    if (sortBy === 'default') {
+      return plansCopy.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
     switch (sortBy) {
       case 'popular':
         return plansCopy.sort((a, b) => {
@@ -31,23 +32,18 @@ const Card = () => {
           if (!a.highlight && b.highlight) return 1;
           return 0;
         });
-      
       case 'price-low':
         return plansCopy.sort((a, b) => a.mrp - b.mrp);
-      
       case 'price-high':
         return plansCopy.sort((a, b) => b.mrp - a.mrp);
-      
       case 'duration':
         return plansCopy.sort((a, b) => {
           const aIsMonth = a.duration?.toLowerCase().includes('month');
           const bIsMonth = b.duration?.toLowerCase().includes('month');
-          
           if (aIsMonth && !bIsMonth) return -1;
           if (!aIsMonth && bIsMonth) return 1;
           return 0;
         });
-      
       default:
         return plansCopy;
     }
