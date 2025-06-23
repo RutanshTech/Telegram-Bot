@@ -22,7 +22,7 @@ async function testPaymentLinkCreation() {
   try {
     console.log('Sending request to create payment link...');
     
-    const response = await axios.post('http://localhost:4000/api/payment/test-create-link', {
+    const response = await axios.post('https://telegram-bot-1-f9v5.onrender.com/api/payment/test-create-link', {
       customer_id: testData.customer_id,
       phone: testData.phone,
       amount: testData.amount

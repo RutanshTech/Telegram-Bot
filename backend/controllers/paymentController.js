@@ -1,16 +1,7 @@
 const { createPaymentLink, checkPaymentStatus } = require('../services/cashfreeService');
 const PaymentLink = require('../models/paymentLinkModel');
 
-// const createLink = async (req, res) => {
-//   try {
-//     const { customer_id, phone, amount } = req.body;
-//     const data = await createPaymentLink({ customer_id, phone, amount });
-//     res.status(200).json({ paymentLink: data.link_url, linkId: data.link_id });
-//   } catch (error) {
-//     console.error('Payment Link Error:', error.response?.data || error.message);
-//     res.status(500).json({ error: 'Payment link creation failed' });
-//   }
-// };
+
 const createLink = async (req, res) => {
   try {
     const { customer_id, phone, amount, plan_id, plan_name } = req.body;
