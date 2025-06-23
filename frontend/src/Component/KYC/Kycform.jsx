@@ -166,6 +166,13 @@ export default function KYCForm() {
 
       if (response.data) {
         toast.success("Invoice has been sent to your email!");
+        // Download invoice if ID is present
+        const invoiceId = response.data?.data?._id;
+        if (invoiceId) {
+          window.open(`https://telegram-bot-1-f9v5.onrender.com/api/invoices/downloadInvoice/${invoiceId}`, '_blank');
+        } else {
+          toast.error("Invoice ID not found, cannot download invoice.");
+        }
         navigate("/digio");
       }
     } catch (error) {
