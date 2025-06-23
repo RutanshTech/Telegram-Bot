@@ -42,7 +42,7 @@ const configuredVars = {
 
   // Application Configuration
   'NODE_ENV': envVars['NODE_ENV'] || 'development',
-  'FRONTEND_URL': envVars['FRONTEND_URL'] || 'https://telegram-bot-virid-one.vercel.app/',
+  'FRONTEND_URL': envVars['FRONTEND_URL'] || 'https://telegram-bot-puce-phi.vercel.app/',
   'BACKEND_URL': envVars['BACKEND_URL'] || 'https://telegram-bot-1-f9v5.onrender.com',
 
   // Digio Configuration
