@@ -19,7 +19,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://telegram-bot-tau-teal.vercel.app/", // Your frontend URL
+    origin: "https://telegram-bot-virid-one.vercel.app/", // Your frontend URL
     methods: ["GET", "POST"]
   }
 });
