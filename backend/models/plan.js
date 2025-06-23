@@ -18,6 +18,10 @@ const planSchema = new mongoose.Schema({
   highlight: {
     type: Boolean,
     default: false
+  },
+  order: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 

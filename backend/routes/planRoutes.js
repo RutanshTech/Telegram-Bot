@@ -8,4 +8,6 @@ router.get('/:id', planController.getSinglePlan);
 router.put('/edit/:id', planController.editPlan);
 router.delete('/delete/:id', planController.deletePlan);
 
+router.post('/reorder', planController.reorderPlans);
+
 module.exports = router;

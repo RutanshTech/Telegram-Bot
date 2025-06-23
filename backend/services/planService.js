@@ -21,10 +21,18 @@ const deletePlan = async (id) => {
   return await Plan.findByIdAndDelete(id);
 };
 
+const reorderPlans = async (orderedIds) => {
+  for (let i = 0; i < orderedIds.length; i++) {
+    await Plan.findByIdAndUpdate(orderedIds[i], { order: i });
+  }
+  return true;
+};
+
 module.exports = {
   createPlan,
   getAllPlans,
   getPlanById,
   updatePlan,
-  deletePlan
+  deletePlan,
+  reorderPlans
 };

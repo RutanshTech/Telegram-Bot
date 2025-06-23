@@ -48,10 +48,21 @@ const deletePlan = async (req, res) => {
   }
 };
 
+const reorderPlans = async (req, res) => {
+  try {
+    const { orderedIds } = req.body;
+    await planService.reorderPlans(orderedIds);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   addPlan,
   getPlans,
   getSinglePlan,
   editPlan,
-  deletePlan
+  deletePlan,
+  reorderPlans
 };
