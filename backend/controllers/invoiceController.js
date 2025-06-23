@@ -1,10 +1,10 @@
 const Invoice = require("../models/Invoice");
 const { generatePDF } = require("../services/pdfService");
 const { sendInvoiceEmail } = require("../services/emailService");
-const path = require("path");
 const User = require("../models/user.model");
-const PaymentLink = require("../models/paymentLinkModel")
-const fs = require("fs");
+const PaymentLink = require("../models/paymentLinkModel");
+const axios = require("axios");
+const cloudinary = require("cloudinary");
 
 exports.createInvoice = async (req, res) => {
   try {
@@ -18,11 +18,9 @@ exports.createInvoice = async (req, res) => {
     // Fetch user with required fields
     const user = await User.findOne({ _id: userid }, 'firstName middleName lastName phone email City stateCode amount transactionId');
 
-
     if (!user) return res.status(404).json({ error: "User not found" });
-    const payment = await PaymentLink.findOne({ userid: userid })
+    const payment = await PaymentLink.findOne({ userid: userid });
 
-    
     const basePrice = parseFloat(payment.amount);
     if (isNaN(basePrice)) {
       return res.status(400).json({ error: "Invalid amount in user data" });
@@ -65,9 +63,6 @@ exports.createInvoice = async (req, res) => {
 
     invoiceData.total = parseFloat(total.toFixed(2));
 
-    // Debug log for GST/IGST
-    console.log("Invoice Data Before Save:", invoiceData);
-
     // Save to MongoDB
     const invoice = new Invoice(invoiceData);
     await invoice.save();
@@ -78,36 +73,106 @@ exports.createInvoice = async (req, res) => {
       await payment.save();
     }
 
-    // Generate PDF
-    const pdfPath = path.join(__dirname, `../invoices/invoice_${invoice._id}.pdf`);
-    await generatePDF(invoice, pdfPath);
-    invoice.pdfPath = pdfPath;
+    // Generate PDF and get Cloudinary URL
+    const pdfUrl = await generatePDF(invoice);
+    invoice.pdfUrl = pdfUrl;
     await invoice.save();
 
-    // Email invoice
-    await sendInvoiceEmail(user.email, pdfPath);
+    // Send email with invoice
+    await sendInvoiceEmail(
+      invoice.billedTo.email,
+      "Your Invoice",
+      `Dear ${invoice.billedTo.name},\n\nPlease find attached your invoice.\n\nBest regards,\nYour Company`,
+      pdfUrl
+    );
 
-    res.status(201).json({ message: "Invoice created and emailed", invoice });
+    res.status(201).json({
+      success: true,
+      message: "Invoice created successfully",
+      data: invoice
+    });
   } catch (err) {
     console.error("Invoice creation error:", err);
-    res.status(500).json({ error: "Invoice creation failed" });
+    let errorMsg = "Invoice creation failed";
+    if (err.message && err.message.includes('Cloudinary')) {
+      errorMsg = "Cloudinary upload failed. Please check your Cloudinary configuration or try again later.";
+    } else if (err.message && err.message.includes('PDF')) {
+      errorMsg = "PDF generation failed. Please try again later.";
+    } else if (err.message) {
+      errorMsg = err.message;
+    }
+    res.status(500).json({ error: errorMsg });
   }
 };
 
 exports.downloadInvoice = async (req, res) => {
   try {
     const { invoiceId } = req.params;
-    const Invoice = require("../models/Invoice");
+    if (!invoiceId || invoiceId === 'null' || invoiceId === 'undefined') {
+      return res.status(400).json({ error: "Invalid or missing invoiceId" });
+    }
     const invoice = await Invoice.findById(invoiceId);
-    if (!invoice || !invoice.pdfPath) {
+    
+    if (!invoice || !invoice.pdfUrl) {
       return res.status(404).json({ error: "Invoice or PDF not found" });
     }
-    if (!fs.existsSync(invoice.pdfPath)) {
-      return res.status(404).json({ error: "PDF file not found on server" });
+
+    // Add caching headers
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+    res.setHeader('ETag', `"${invoice._id}"`);
+    
+    // Check if client has cached version
+    const ifNoneMatch = req.headers['if-none-match'];
+    if (ifNoneMatch === `"${invoice._id}"`) {
+      return res.status(304).end();
     }
-    res.download(invoice.pdfPath, `invoice_${invoice.invoiceNo || invoiceId}.pdf`);
+
+    // Download the PDF from Cloudinary with timeout and retries
+    const maxRetries = 3;
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const signedUrl = cloudinary.utils.private_download_url(
+          invoice.pdfUrl,
+          'pdf', // extension
+          {
+            resource_type: 'raw',
+            type: 'private',
+            expires_at: Math.floor(Date.now() / 1000) + 3600
+          }
+        );
+
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice_${invoice.invoiceNo}.pdf`);
+        
+        // Send the PDF
+        return res.send(Buffer.from(signedUrl));
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error.message);
+        lastError = error;
+        
+        if (attempt < maxRetries) {
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+        }
+      }
+    }
+
+    // If all retries failed
+    console.error("All download attempts failed:", lastError);
+    res.status(500).json({ 
+      error: "Error downloading invoice",
+      details: lastError.message
+    });
   } catch (err) {
-    res.status(500).json({ error: "Error downloading invoice" });
+    console.error("Error downloading invoice:", err);
+    res.status(500).json({ 
+      error: "Error downloading invoice",
+      details: err.message
+    });
   }
 };
+
 

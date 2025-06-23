@@ -27,7 +27,7 @@ const invoiceSchema = new mongoose.Schema({
   sgstAmt: Number,
   total: Number,
   transactionId: String,
-  pdfPath: String
+  pdfUrl: String
 }, { timestamps: true });
 
 module.exports = mongoose.model("Invoice", invoiceSchema);

@@ -1,6 +1,15 @@
+require('dotenv').config();
+
+// Debug logging for environment variables
+console.log('Environment Variables Check:');
+console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Not Set');
+console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? 'Set' : 'Not Set');
+console.log('CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Not Set');
+console.log('MONGO_URI:', process.env.MONGO_URI ? 'Set' : 'Not Set');
+console.log('PORT:', process.env.PORT || '4000');
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -13,13 +22,12 @@ const digioRoute = require('./routes/digio.routes');
 const digioErrorRoutes = require('./routes/digioRoutes');
 require('./jobs/expireUsersJob');
 require('./cron/updateSubscriptions'); // Import subscription update cron job
-dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://telegram-bot-virid-one.vercel.app/", // Your frontend URL
+    origin: ["https://telegram-bot-tau-teal.vercel.app","https://telegram-bot-virid-one.vercel.app/" ],// Your frontend URL
     methods: ["GET", "POST"]
   }
 });
